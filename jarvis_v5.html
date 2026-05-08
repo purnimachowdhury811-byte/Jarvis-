@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>JARVIS v5</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#020c16;--panel:rgba(4,16,28,0.97);
+  --c:#00e5ff;--cdim:rgba(0,229,255,0.1);--cglow:rgba(0,229,255,0.28);
+  --g:#00ff88;--o:#ff6b2b;--r:#ff2d55;--y:#ffd60a;--p:#bf5af2;
+  --tx:#a8cce0;--dim:#2a5060;--br:rgba(0,229,255,0.14);
+}
+html,body{height:100%;width:100%;overflow:hidden}
+body{background:var(--bg);color:var(--tx);font-family:'Exo 2',sans-serif;display:flex;flex-direction:column;position:fixed;inset:0}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,229,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.018) 1px,transparent 1px);background-size:46px 46px;animation:gr 28s linear infinite}
+@keyframes gr{to{background-position:46px 46px}}
+
+/* ── SETUP ── */
+#setup{position:fixed;inset:0;z-index:999;background:rgba(2,12,22,0.99);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px 22px;gap:12px}
+#setup.hide{display:none}
+.s-logo{font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;color:var(--c);letter-spacing:5px;text-shadow:0 0 28px var(--cglow)}
+.s-sub{font-size:0.68rem;color:var(--dim);font-family:'Share Tech Mono',monospace;text-align:center;letter-spacing:1px}
+.s-lbl{font-size:0.62rem;color:var(--dim);font-family:'Share Tech Mono',monospace;align-self:flex-start;letter-spacing:1px}
+.s-in{width:100%;padding:13px 14px;background:rgba(0,229,255,0.05);border:1px solid var(--br);border-radius:10px;color:var(--c);font-family:'Share Tech Mono',monospace;font-size:0.82rem;outline:none}
+.s-in:focus{border-color:var(--c);box-shadow:0 0 10px var(--cdim)}
+.s-sel{width:100%;padding:11px 14px;background:rgba(0,229,255,0.05);border:1px solid var(--br);border-radius:10px;color:var(--tx);font-size:0.8rem;outline:none}
+.s-btn{width:100%;padding:14px;background:linear-gradient(135deg,rgba(0,229,255,0.2),rgba(0,229,255,0.05));border:1px solid var(--c);border-radius:10px;color:var(--c);font-family:'Orbitron',monospace;font-size:0.72rem;letter-spacing:3px;cursor:pointer;box-shadow:0 0 16px var(--cdim);transition:all 0.2s}
+.s-btn:hover{background:rgba(0,229,255,0.28)}
+.s-link{font-size:0.65rem;color:var(--dim);font-family:'Share Tech Mono',monospace;text-align:center}
+.s-link a{color:var(--c);text-decoration:none}
+
+/* ── HEADER ── */
+header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:rgba(2,12,22,0.99);border-bottom:1px solid var(--br);z-index:50}
+.logo{font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:var(--c);letter-spacing:5px;text-shadow:0 0 16px var(--cglow);display:flex;align-items:center;gap:7px}
+.logo-r{width:26px;height:26px;border-radius:50%;border:2px solid var(--c);display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 0 10px var(--cglow);animation:rp 2.5s ease-in-out infinite}
+@keyframes rp{0%,100%{box-shadow:0 0 10px var(--cglow)}50%{box-shadow:0 0 22px var(--cglow)}}
+.h-r{display:flex;align-items:center;gap:8px}
+.badge{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:14px;border:1px solid var(--br);background:var(--cdim);font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--c);letter-spacing:1px}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--g);animation:bl 1.5s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:0.15}}
+#clk{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim)}
+.hbtn{background:none;border:1px solid var(--br);border-radius:6px;color:var(--dim);padding:4px 7px;cursor:pointer;font-size:0.75rem;transition:all 0.2s}
+.hbtn:hover{border-color:var(--c);color:var(--c)}
+
+/* ── MODE TABS ── */
+.mode-tabs{flex-shrink:0;display:flex;overflow-x:auto;padding:6px 10px;gap:5px;background:rgba(2,12,22,0.95);border-bottom:1px solid rgba(0,229,255,0.07)}
+.mode-tabs::-webkit-scrollbar{display:none}
+.mtab{padding:5px 12px;border-radius:14px;border:1px solid var(--br);background:transparent;color:var(--dim);font-size:0.68rem;cursor:pointer;font-family:'Exo 2',sans-serif;white-space:nowrap;transition:all 0.2s;flex-shrink:0}
+.mtab:hover{border-color:var(--c);color:var(--c)}
+.mtab.on{border-color:var(--c);background:var(--cdim);color:var(--c)}
+
+/* ── STATUS BAR ── */
+.sbar{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:5px 14px;background:rgba(2,12,22,0.9);border-bottom:1px solid rgba(0,229,255,0.05);overflow-x:auto}
+.sbar::-webkit-scrollbar{display:none}
+.si{display:flex;align-items:center;gap:4px;white-space:nowrap;font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--dim)}
+.si.on{color:var(--c)}.si.gr{color:var(--g)}.si.yl{color:var(--y)}
+.sdv{width:1px;height:12px;background:var(--br);flex-shrink:0}
+
+/* ── MESSAGES ── */
+.msgs{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:9px;scroll-behavior:smooth;min-height:0}
+.msgs::-webkit-scrollbar{width:3px}
+.msgs::-webkit-scrollbar-thumb{background:var(--br);border-radius:2px}
+
+/* Welcome */
+.welcome{display:flex;flex-direction:column;align-items:center;padding:24px 14px;gap:9px;text-align:center;margin:auto}
+.w-ic{font-size:2.5rem;animation:wi 3s ease-in-out infinite}
+@keyframes wi{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.w-t{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--c);text-shadow:0 0 16px var(--cglow)}
+.w-s{font-size:0.78rem;color:var(--dim);line-height:1.6}
+.w-chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:6px}
+.wchip{padding:5px 11px;border-radius:14px;border:1px solid var(--br);background:var(--cdim);color:var(--dim);font-size:0.68rem;cursor:pointer;transition:all 0.2s;font-family:'Exo 2',sans-serif}
+.wchip:hover,.wchip:active{border-color:var(--c);color:var(--c)}
+
+/* Messages */
+.msg{display:flex;gap:7px;align-items:flex-start;animation:mi .2s ease-out}
+@keyframes mi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg.u{flex-direction:row-reverse}
+.av{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:0.48rem;font-weight:700;border:1px solid var(--br);background:var(--cdim);color:var(--c)}
+.msg.u .av{background:rgba(255,107,43,0.1);color:var(--o);border-color:rgba(255,107,43,0.22)}
+.bbl{max-width:84%;padding:9px 12px;border-radius:10px;font-size:0.85rem;line-height:1.65;border:1px solid var(--br);background:rgba(4,16,28,0.88);color:var(--tx)}
+.msg.u .bbl{background:rgba(255,107,43,0.05);border-color:rgba(255,107,43,0.18)}
+.mfoot{font-size:0.54rem;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:3px;display:flex;align-items:center;gap:4px}
+.msg.u .mfoot{justify-content:flex-end}
+.ltag{padding:1px 5px;border-radius:3px;font-size:0.5rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.lbn{background:rgba(0,255,136,0.1);color:var(--g)}
+.len{background:rgba(0,229,255,0.1);color:var(--c)}
+.cur{display:inline-block;width:2px;height:.9em;background:var(--c);animation:cr .7s step-end infinite;vertical-align:text-bottom;margin-left:1px}
+@keyframes cr{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Code */
+.bbl pre{background:rgba(0,0,0,0.65);border:1px solid rgba(0,229,255,0.1);border-radius:6px;padding:10px;margin:7px 0;overflow-x:auto;font-family:'Share Tech Mono',monospace;font-size:0.74rem;color:var(--g);white-space:pre-wrap;line-height:1.5}
+.bbl code{background:rgba(0,229,255,0.07);padding:1px 5px;border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:0.79em;color:var(--g)}
+.bbl strong{color:var(--c)}.bbl em{color:var(--y)}.bbl h3{color:var(--y);font-size:0.9rem;margin:6px 0 2px}.bbl h2{color:var(--c);font-size:0.95rem;margin:6px 0 2px}
+.bbl ul,.bbl ol{padding-left:16px;margin:3px 0}.bbl li{margin:2px 0}
+.bbl a{color:var(--c)}
+.bbl hr{border:none;border-top:1px solid var(--br);margin:8px 0}
+.bbl blockquote{border-left:2px solid var(--c);padding-left:10px;color:var(--dim);margin:6px 0}
+
+/* Tool result */
+.tresult{margin:4px 0;padding:7px 11px;border:1px solid rgba(0,255,136,0.18);border-radius:8px;background:rgba(0,255,136,0.03);font-size:0.74rem;color:var(--g);font-family:'Share Tech Mono',monospace}
+.tresult .tlbl{font-size:0.58rem;color:var(--dim);margin-bottom:3px;letter-spacing:1px}
+
+/* Search result card */
+.src-card{margin:5px 0;padding:9px 12px;border:1px solid var(--br);border-radius:8px;background:rgba(0,229,255,0.03)}
+.src-title{font-size:0.8rem;color:var(--c);font-weight:600;margin-bottom:3px}
+.src-url{font-size:0.62rem;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:5px}
+.src-desc{font-size:0.78rem;color:var(--tx);line-height:1.5}
+
+/* Notes panel */
+.notes-panel{position:fixed;inset:0;z-index:200;background:rgba(2,12,22,0.98);display:flex;flex-direction:column;padding:14px}
+.notes-panel.hide{display:none}
+.notes-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.notes-title{font-family:'Orbitron',monospace;font-size:0.85rem;color:var(--c);letter-spacing:2px}
+.notes-area{flex:1;background:rgba(0,229,255,0.03);border:1px solid var(--br);border-radius:10px;padding:12px;color:var(--tx);font-family:'Exo 2',sans-serif;font-size:0.85rem;resize:none;outline:none;line-height:1.6}
+.notes-area:focus{border-color:var(--c)}
+.notes-actions{display:flex;gap:8px;margin-top:10px}
+.na-btn{flex:1;padding:10px;border-radius:8px;border:1px solid var(--br);background:transparent;color:var(--tx);font-size:0.75rem;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all 0.2s}
+.na-btn.primary{border-color:var(--c);color:var(--c);background:var(--cdim)}
+.na-btn:hover{border-color:var(--c);color:var(--c)}
+
+/* ── QUICK TOOLS ── */
+.qtools{flex-shrink:0;display:flex;overflow-x:auto;padding:7px 10px;gap:5px;background:rgba(2,12,22,0.92);border-top:1px solid rgba(0,229,255,0.06)}
+.qtools::-webkit-scrollbar{display:none}
+.qtool{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:14px;border:1px solid var(--br);background:transparent;color:var(--dim);font-size:0.66rem;cursor:pointer;font-family:'Exo 2',sans-serif;white-space:nowrap;transition:all 0.2s;flex-shrink:0}
+.qtool:hover,.qtool:active{border-color:var(--c);color:var(--c);background:var(--cdim)}
+
+/* ── INPUT ── */
+.izone{flex-shrink:0;padding:9px 12px 11px;border-top:1px solid var(--br);background:rgba(2,12,22,0.99)}
+.fprev{display:flex;align-items:center;gap:7px;padding:6px 10px;margin-bottom:7px;border:1px solid rgba(0,229,255,0.18);border-radius:7px;background:rgba(0,229,255,0.03);font-size:0.7rem;color:var(--c);font-family:'Share Tech Mono',monospace}
+.fprev button{background:none;border:none;color:var(--r);cursor:pointer;margin-left:auto;font-size:0.9rem}
+.irow{display:flex;align-items:flex-end;gap:6px}
+.cin{flex:1;padding:10px 13px;resize:none;min-height:42px;max-height:100px;background:rgba(0,229,255,0.04);border:1px solid var(--br);border-radius:9px;color:var(--tx);font-family:'Exo 2',sans-serif;font-size:0.88rem;outline:none;transition:border-color 0.2s;line-height:1.4}
+.cin:focus{border-color:var(--c)}.cin::placeholder{color:var(--dim)}
+.ibtn{width:42px;height:42px;flex-shrink:0;border:1px solid var(--br);border-radius:9px;background:transparent;color:var(--dim);font-size:0.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.ibtn:hover{border-color:var(--c);color:var(--c);background:var(--cdim)}
+.ibtn.rec{border-color:var(--o);color:var(--o);background:rgba(255,107,43,0.1);animation:vp .8s infinite}
+@keyframes vp{0%,100%{box-shadow:0 0 4px rgba(255,107,43,0.3)}50%{box-shadow:0 0 14px rgba(255,107,43,0.6)}}
+.sbtn{height:42px;padding:0 16px;flex-shrink:0;background:linear-gradient(135deg,rgba(0,229,255,0.18),rgba(0,229,255,0.04));border:1px solid var(--c);border-radius:9px;color:var(--c);font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:2px;cursor:pointer;box-shadow:0 0 7px var(--cdim);transition:all 0.2s}
+.sbtn:hover{background:rgba(0,229,255,0.25)}.sbtn:disabled{opacity:0.3;cursor:not-allowed}
+
+/* Notify */
+.notif{position:fixed;bottom:75px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:7px;border:1px solid var(--c);background:rgba(2,12,22,0.98);color:var(--c);font-family:'Share Tech Mono',monospace;font-size:0.68rem;z-index:900;white-space:nowrap;animation:ni .2s ease,no .2s ease 2.8s forwards}
+@keyframes ni{from{opacity:0;transform:translate(-50%,5px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes no{to{opacity:0}}
+.c-tl,.c-br{position:fixed;width:20px;height:20px;pointer-events:none;z-index:999}
+.c-tl{top:0;left:0;border-top:2px solid var(--c);border-left:2px solid var(--c)}
+.c-br{bottom:0;right:0;border-bottom:2px solid var(--c);border-right:2px solid var(--c)}
+#fileInput{display:none}
+</style>
+</head>
+<body>
+<div class="c-tl"></div><div class="c-br"></div>
+
+<!-- SETUP -->
+<div id="setup">
+  <div style="font-size:2.5rem;animation:wi 3s ease-in-out infinite">⬡</div>
+  <div class="s-logo">JARVIS v5</div>
+  <div class="s-sub">Amit er Personal AI OS • West Bengal, India</div>
+  <div class="s-lbl" style="margin-top:4px">GROQ API KEY (Free — console.groq.com)</div>
+  <input class="s-in" type="password" id="setupKey" placeholder="gsk_xxxxxxxxxxxx" autocomplete="off" oninput="onKeyInput(this)"/>
+  <div class="s-lbl">AI MODEL</div>
+  <select class="s-sel" id="setupModel">
+    <option value="llama-3.3-70b-versatile" selected>llama-3.3-70b 🧠 Smart (Recommended)</option>
+    <option value="llama-3.1-8b-instant">llama-3.1-8b ⚡ Fast</option>
+    <option value="gemma2-9b-it">gemma2-9b</option>
+    <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
+  </select>
+  <button class="s-btn" onclick="connect()">⚡ ACTIVATE JARVIS</button>
+  <div class="s-link">Free API: <a href="https://console.groq.com" target="_blank">console.groq.com</a> → Sign up → API Keys</div>
+</div>
+
+<!-- NOTES PANEL -->
+<div class="notes-panel hide" id="notesPanel">
+  <div class="notes-header">
+    <div class="notes-title">📝 NOTES</div>
+    <button class="hbtn" onclick="closeNotes()">✕ Close</button>
+  </div>
+  <textarea class="notes-area" id="notesArea" placeholder="Ekhane notes likho... JARVIS ke analyze korte bolte parbe!"></textarea>
+  <div class="notes-actions">
+    <button class="na-btn" onclick="closeNotes()">Close</button>
+    <button class="na-btn primary" onclick="analyzeNotes()">🧠 Analyze with JARVIS</button>
+    <button class="na-btn primary" onclick="saveNotes()">💾 Save</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo"><div class="logo-r">⬡</div>JARVIS</div>
+  <div id="clk">--:--</div>
+  <div class="h-r">
+    <div class="badge"><div class="sdot"></div><span id="stxt">OFFLINE</span></div>
+    <button class="hbtn" onclick="toggleSetup()">⚙</button>
+  </div>
+</header>
+
+<!-- MODE TABS -->
+<div class="mode-tabs">
+  <button class="mtab on" onclick="setMode('JARVIS',this)">🤖 JARVIS</button>
+  <button class="mtab" onclick="setMode('STUDY',this)">🎓 Study</button>
+  <button class="mtab" onclick="setMode('CODE',this)">💻 Code</button>
+  <button class="mtab" onclick="setMode('SEARCH',this)">🌐 Search</button>
+  <button class="mtab" onclick="setMode('DATA',this)">📊 Data</button>
+  <button class="mtab" onclick="setMode('FOCUS',this)">🎯 Focus</button>
+  <button class="mtab" onclick="setMode('MONEY',this)">💰 Money</button>
+</div>
+
+<!-- STATUS BAR -->
+<div class="sbar">
+  <div class="si on" id="sb1">🧠 —</div><div class="sdv"></div>
+  <div class="si" id="sb2">💬 0</div><div class="sdv"></div>
+  <div class="si" id="sb3">🔤 Auto</div><div class="sdv"></div>
+  <div class="si gr" id="sb4">💾 0</div><div class="sdv"></div>
+  <div class="si yl" id="sb5">⚡ JARVIS</div>
+</div>
+
+<!-- MESSAGES -->
+<div class="msgs" id="msgs">
+  <div class="welcome" id="wel">
+    <div class="w-ic">🤖</div>
+    <div class="w-t">JARVIS v5 ONLINE</div>
+    <div class="w-s">Namaskar <span style="color:var(--c)">Amit</span>! Ki korte chai?<br/><span style="font-size:0.7rem">Bengali • Banglish • English — sob bujhbo ✓</span></div>
+    <div class="w-chips">
+      <div class="wchip" onclick="q('Amar aaj er complete study plan tori kore dao')">📚 Study Plan</div>
+      <div class="wchip" onclick="q('Data analyst hote hole complete roadmap dao')">📊 Data Path</div>
+      <div class="wchip" onclick="q('Python beginner theke intermediate — complete guide')">🐍 Python Guide</div>
+      <div class="wchip" onclick="q('AI diye India te income er top 5 practical way')">💰 Earn with AI</div>
+      <div class="wchip" onclick="q('Machine learning ki? Simple banglay bujhao')">🤖 ML Basics</div>
+      <div class="wchip" onclick="q('Amar BCA final year project er idea dao')">💡 Project Ideas</div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK TOOLS -->
+<div class="qtools">
+  <button class="qtool" onclick="openSite('https://youtube.com')">▶ YouTube</button>
+  <button class="qtool" onclick="openSite('https://google.com')">🔍 Google</button>
+  <button class="qtool" onclick="openSite('https://github.com')">🐙 GitHub</button>
+  <button class="qtool" onclick="openSite('https://colab.research.google.com')">💻 Colab</button>
+  <button class="qtool" onclick="openSite('https://kaggle.com')">📊 Kaggle</button>
+  <button class="qtool" onclick="openSite('https://w3schools.com')">📘 W3Schools</button>
+  <button class="qtool" onclick="openSite('https://chat.openai.com')">🤖 ChatGPT</button>
+  <button class="qtool" onclick="openNotes()">📝 Notes</button>
+  <button class="qtool" onclick="triggerFile()">📎 File</button>
+  <button class="qtool" onclick="clearChat()">🗑 Clear</button>
+</div>
+
+<!-- INPUT -->
+<div class="izone">
+  <div id="fprev"></div>
+  <div class="irow">
+    <button class="ibtn" id="vbtn" onclick="toggleVoice()">🎤</button>
+    <textarea class="cin" id="cin" placeholder="Ki bolbe? Bengali / Banglish / English..." onkeydown="onKey(event)" oninput="autoH(this)" rows="1"></textarea>
+    <button class="sbtn" id="sbtn" onclick="send()">SEND ▶</button>
+  </div>
+</div>
+<input type="file" id="fileInput" accept=".txt,.py,.js,.html,.css,.json,.md,.csv,.pdf" onchange="onFile(this)"/>
+
+<script>
+// ══════════════════════════════════════
+//  JARVIS v5 — Complete AI OS
+//  Phase A + Phase B — All Features
+// ══════════════════════════════════════
+
+let KEY='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', MODEL='llama-3.3-70b-versatile', mode='JARVIS';
+let hist=[], msgs=0, pendingFile=null;
+let recog=null, listening=false, db=null;
+
+// ── IndexedDB ────────────────────────
+async function initDB(){
+  return new Promise(r=>{
+    const req=indexedDB.open('JarvisV5',2);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('chats')) d.createObjectStore('chats',{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains('mem')) d.createObjectStore('mem',{keyPath:'k'});
+      if(!d.objectStoreNames.contains('notes')) d.createObjectStore('notes',{keyPath:'k'});
+    };
+    req.onsuccess=e=>{db=e.target.result;r()};
+    req.onerror=()=>r();
+  });
+}
+function dbSet(store,k,v){if(!db)return;const tx=db.transaction(store,'readwrite');tx.objectStore(store).put({k,v,ts:Date.now()})}
+function dbGet(store,k){return new Promise(r=>{if(!db)return r(null);const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).get(k);req.onsuccess=()=>r(req.result?.v||null);req.onerror=()=>r(null)})}
+function dbCount(store){return new Promise(r=>{if(!db)return r(0);const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).count();req.onsuccess=()=>r(req.result);req.onerror=()=>r(0)})}
+function dbSaveChat(role,content){if(!db)return;const tx=db.transaction('chats','readwrite');tx.objectStore('chats').add({role,content,mode,ts:Date.now()})}
+
+// ── System Prompts by Mode ────────────
+const BASE = `You are JARVIS — Amit's personal AI Operating System. Amit is a BCA student from West Bengal, India. Goals: Data Analyst → AI Engineer → Build own AI system.
+
+══ LANGUAGE RULE — CRITICAL ══
+Detect language → Reply in SAME language. Never mix Hindi.
+
+Bengali Unicode (কি,হলো,তুমি,আমি,শিখব): Reply in pure Bengali script.
+✅ "মেশিন লার্নিং হলো কম্পিউটারকে ডেটা থেকে শেখানোর পদ্ধতি।"
+
+Romanized Bengali/Banglish (ki,holo,bolo,dao,korbo,tumi,ami,ache,nei,shikhbo): Reply in Romanized Bengali.
+✅ "Machine learning holo computers ke data theke pattern shekhano — YouTube er recommendation system etar example."
+❌ NEVER Hindi: "Haan, bilkul. Matlab yeh hai..."
+
+Pure English: Clean smart English only.
+
+BANNED HINDI: hain,hai,nahi,karo,matlab,kyun,bilkul,theek,acha,lekin,aur,sabhi,bahut,kiya,gaya,tha,logon,woh,unho,isliye,toh,yeh,bhi,kuch
+
+Bengali alternatives: lekin→kintu/tobe | aur→ar/ebong | bahut→onek | nahi→na/nei | woh→tini/o | gaya→gelo | tha→chilo | theek→thik
+
+RESPONSE TYPES:
+Q (general question): Conversational 3-6 sentences. NO CODE unless needed.
+B (build/code): 🔍 Understanding → 🧠 Plan → ⚙️ Steps → 💻 Code → 🚀 Next
+S (steps/process): Numbered steps. Clean.
+F (facts/GK): Direct friendly answer.
+G (goals/motivation): Encourage Amit's journey.
+
+Personality: Loyal genius friend. Practical. Never wastes words.`;
+
+const MODE_PROMPTS = {
+  JARVIS: BASE,
+  STUDY: BASE + `\n\nSTUDY MODE: Help Amit study effectively. Break complex topics into simple parts. Give memory tricks. Suggest practice problems. Create study schedules. Focus on Data Science, Python, AI/ML concepts.`,
+  CODE: BASE + `\n\nCODE MODE: Expert coding assistant. Always give working, commented code. Explain every line for a beginner. Debug errors patiently. Suggest best practices. Focus on Python, JavaScript, HTML/CSS, SQL.`,
+  SEARCH: BASE + `\n\nSEARCH MODE: Amit wants current information. Provide comprehensive, well-researched answers. Mention if information might be outdated. Suggest reliable sources. Give multiple perspectives.`,
+  DATA: BASE + `\n\nDATA ANALYST MODE: Help with data analysis, statistics, pandas, numpy, matplotlib, SQL, Excel. Explain concepts with practical examples. Guide through real dataset problems. Focus on Amit's goal of becoming a Data Analyst.`,
+  FOCUS: BASE + `\n\nFOCUS MODE: Help Amit stay productive. Give specific tasks with time estimates. Remove distractions. Track goals. Motivate without fluff. Create actionable plans. Monitor BCA → Data Analyst → AI Engineer progress.`,
+  MONEY: BASE + `\n\nMONEY MODE: Practical ways to earn in India using AI and tech skills. Focus on: freelancing, Fiverr/Upwork, content creation, teaching, internships. Be specific about platforms, rates, and how to start with beginner skills.`
+};
+
+// ── Language Detection ───────────────
+function detectLang(t){
+  if(/[\u0980-\u09FF]/.test(t)) return {l:'বাংলা',c:'lbn'};
+  if(/\b(ki|keno|holo|bolo|dao|korbo|jabo|shikhbo|ache|nei|tumi|ami|eta|ota|kore|korchi|jana|bujhi|shekho|chai|hobe|chilo|gelo|theke|jete|kothay|bolbe|korbe|jante|shikhi|pelam|pabo|lagbe|geche|hoye|niye)\b/i.test(t)) return {l:'Banglish',c:'lbn'};
+  return {l:'English',c:'len'};
+}
+
+// ── Clock ────────────────────────────
+setInterval(()=>{document.getElementById('clk').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})},1000);
+
+// ── Connect ──────────────────────────
+async function connect(){
+  const k=document.getElementById('setupKey').value.trim();
+  const m=document.getElementById('setupModel').value;
+  if(!k.startsWith('gsk_')||k.length<25){notify('⚠ Invalid key! gsk_ diye shuru hobe');return}
+  KEY=k; MODEL=m;
+  // Save to both IndexedDB and localStorage as backup
+  try{ dbSet('mem','apiKey',k); dbSet('mem','model',m); }catch(e){}
+  try{ localStorage.setItem('jv5_key',k); localStorage.setItem('jv5_model',m); }catch(e){}
+  document.getElementById('setup').classList.add('hide');
+  document.getElementById('stxt').textContent='ONLINE';
+  document.getElementById('sb1').textContent='🧠 '+m.split('-').slice(0,3).join('-');
+  updateStats();
+  notify('✅ JARVIS v5 activated! Ki korte chai, Amit?');
+}
+
+// Auto-connect when key typed
+function onKeyInput(el){
+  const k=el.value.trim();
+  if(k.startsWith('gsk_')&&k.length>30){
+    KEY=k;
+    document.getElementById('stxt').textContent='ONLINE';
+    document.getElementById('sb1').textContent='🧠 Ready';
+    try{localStorage.setItem('jv5_key',k);}catch(e){}
+    try{dbSet('mem','apiKey',k);}catch(e){}
+  }
+}
+
+function toggleSetup(){
+  const s=document.getElementById('setup');
+  s.classList.toggle('hide');
+  if(!s.classList.contains('hide')&&KEY) document.getElementById('setupKey').value=KEY;
+}
+
+// ── Send ─────────────────────────────
+async function send(){
+  const inp=document.getElementById('cin');
+  let txt=inp.value.trim();
+  if(!txt&&!pendingFile) return;
+  if(!KEY){notify('⚠ API key setup koro!');toggleSetup();return}
+
+  inp.value=''; inp.style.height='42px';
+
+  if(pendingFile){
+    txt=`[File: ${pendingFile.name}]\n\n${pendingFile.content}\n\n${txt||'Ei file ta analyze kore explain koro.'}`;
+    pendingFile=null;
+    document.getElementById('fprev').innerHTML='';
+  }
+
+  const lang=detectLang(txt);
+  document.getElementById('sb3').textContent='🔤 '+lang.l;
+
+  // Tool detection
+  const tool=detectTools(txt);
+  if(tool){
+    addUserMsg(txt,lang);
+    addToolMsg(tool);
+    hist.push({role:'user',content:txt});
+    hist.push({role:'assistant',content:tool.reply});
+    msgs++; updateStats();
+    return;
+  }
+
+  addUserMsg(txt,lang);
+  dbSaveChat('user',txt);
+  hist.push({role:'user',content:`[${mode} MODE] ${txt}`});
+  document.getElementById('sbtn').disabled=true;
+  await streamReply(lang);
+}
+
+// ── Tool Detection ────────────────────
+function detectTools(txt){
+  const t=txt.toLowerCase();
+  const sites={
+    'youtube':'https://youtube.com',
+    'google':'https://google.com',
+    'github':'https://github.com',
+    'kaggle':'https://kaggle.com',
+    'colab':'https://colab.research.google.com',
+    'w3schools':'https://w3schools.com',
+    'stackoverflow':'https://stackoverflow.com',
+    'wikipedia':'https://wikipedia.org',
+  };
+  for(const [name,url] of Object.entries(sites)){
+    if(new RegExp(`(open|kholo|jao|chalao)\\s*${name}|${name}\\s*(open|kholo|chalao)`,'i').test(txt)){
+      window.open(url,'_blank');
+      return{reply:`▶ ${name.charAt(0).toUpperCase()+name.slice(1)} open korchi! 🚀`};
+    }
+  }
+  if(/google.*(search|khojo|dekh)/i.test(txt)||/(search|khojo)\s*(koro|dao)/i.test(txt)){
+    const q=txt.replace(/(google|search|khojo|koro|dao|te)/gi,'').trim();
+    if(q.length>2){window.open(`https://google.com/search?q=${encodeURIComponent(q)},'_blank'`);return{reply:`🔍 Google-এ search korchi: "${q}"`}}
+  }
+  return null;
+}
+
+// ── Stream Response ───────────────────
+async function streamReply(lang){
+  const box=document.getElementById('msgs');
+  const wel=document.getElementById('wel');
+  if(wel) wel.remove();
+
+  const div=document.createElement('div');
+  div.className='msg';
+  const time=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=`<div class="av">JV</div><div><div class="bbl" id="sbbl"><span class="cur"></span></div><div class="mfoot"><span class="ltag ${lang.c}">${lang.l}</span><span>${time}</span></div></div>`;
+  box.appendChild(div);
+  box.scrollTop=box.scrollHeight;
+
+  const bbl=document.getElementById('sbbl');
+  let full='';
+
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
+      body:JSON.stringify({
+        model:MODEL,stream:true,max_tokens:1400,temperature:0.65,
+        messages:[
+          {role:'system',content:MODE_PROMPTS[mode]+`\nDetected lang: ${lang.l}`},
+          ...hist.slice(-14)
+        ]
+      })
+    });
+
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'HTTP '+res.status)}
+
+    const reader=res.body.getReader();
+    const dec=new TextDecoder();
+    let buf='';
+
+    while(true){
+      const{done,value}=await reader.read();
+      if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n');
+      buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: ')) continue;
+        const data=line.slice(6).trim();
+        if(data==='[DONE]') continue;
+        try{
+          const j=JSON.parse(data);
+          const d=j.choices?.[0]?.delta?.content;
+          if(d){full+=d;bbl.innerHTML=fmt(full)+'<span class="cur"></span>';box.scrollTop=box.scrollHeight}
+        }catch(e){}
+      }
+    }
+
+    bbl.innerHTML=fmt(full);
+    hist.push({role:'assistant',content:full});
+    dbSaveChat('assistant',full);
+    msgs++; updateStats();
+
+  }catch(e){
+    bbl.innerHTML=`<span style="color:var(--r)">⚠ ${e.message}</span><br/><small style="color:var(--dim)">API key check koro ba net connection dekho.</small>`;
+  }finally{
+    document.getElementById('sbtn').disabled=false;
+  }
+}
+
+// ── Add messages ──────────────────────
+function addUserMsg(txt,lang){
+  const box=document.getElementById('msgs');
+  const wel=document.getElementById('wel'); if(wel)wel.remove();
+  const div=document.createElement('div');div.className='msg u';
+  const time=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=`<div class="av">AM</div><div><div class="bbl">${esc(txt)}</div><div class="mfoot u"><span class="ltag ${lang.c}">${lang.l}</span><span>${time}</span></div></div>`;
+  box.appendChild(div);box.scrollTop=box.scrollHeight;
+}
+
+function addToolMsg(tool){
+  const box=document.getElementById('msgs');
+  const div=document.createElement('div');div.className='msg';
+  const time=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=`<div class="av">JV</div><div><div class="tresult"><div class="tlbl">⚡ TOOL EXECUTED</div>${tool.reply}</div><div class="mfoot"><span>${time}</span></div></div>`;
+  box.appendChild(div);box.scrollTop=box.scrollHeight;
+}
+
+// ── Format markdown ───────────────────
+function fmt(t){
+  if(!t) return '';
+  t=t.replace(/```(\w*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre>${esc(c.trim())}</pre>`);
+  t=t.replace(/`([^`\n]+)`/g,'<code>$1</code>');
+  t=t.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  t=t.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  t=t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  t=t.replace(/\*(.*?)\*/g,'<em>$1</em>');
+  t=t.replace(/^---$/gm,'<hr>');
+  t=t.replace(/^>\s(.+)$/gm,'<blockquote>$1</blockquote>');
+  t=t.replace(/^[-•*]\s(.+)$/gm,'<li>$1</li>');
+  t=t.replace(/(<li>.*<\/li>)/s,s=>`<ul>${s}</ul>`);
+  t=t.replace(/\n/g,'<br>');
+  return t;
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+// ── Notes ────────────────────────────
+function openNotes(){
+  document.getElementById('notesPanel').classList.remove('hide');
+  const saved=localStorage.getItem('jarvis_notes');
+  if(saved) document.getElementById('notesArea').value=saved;
+}
+function closeNotes(){document.getElementById('notesPanel').classList.add('hide')}
+function saveNotes(){
+  localStorage.setItem('jarvis_notes',document.getElementById('notesArea').value);
+  notify('💾 Notes saved!');
+}
+function analyzeNotes(){
+  const notes=document.getElementById('notesArea').value.trim();
+  if(!notes){notify('⚠ Notes kichhu likho aage!');return}
+  closeNotes();
+  document.getElementById('cin').value=`Ei notes gulo analyze kore amar jonno summarize koro ar important points highlight koro:\n\n${notes.substring(0,3000)}`;
+  send();
+}
+
+// ── File Upload ───────────────────────
+function triggerFile(){document.getElementById('fileInput').click()}
+function onFile(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    pendingFile={name:file.name,content:e.target.result.substring(0,8000)};
+    document.getElementById('fprev').innerHTML=`<div class="fprev">📎 ${file.name} (${(file.size/1024).toFixed(1)}KB)<button onclick="cancelFile()">✕</button></div>`;
+    notify('📎 File ready! Question likhe SEND koro.');
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+function cancelFile(){pendingFile=null;document.getElementById('fprev').innerHTML=''}
+
+// ── Voice ─────────────────────────────
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){notify('⚠ Voice support nei');return}
+  if(listening){recog?.stop();return}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recog=new SR();recog.lang='bn-IN';recog.interimResults=false;
+  recog.onstart=()=>{listening=true;const b=document.getElementById('vbtn');b.className='ibtn rec';b.textContent='🔴';notify('🎤 Shunte parchi...')}
+  recog.onresult=e=>{document.getElementById('cin').value=e.results[0][0].transcript;notify('✅ Captured!')}
+  recog.onend=recog.onerror=()=>{listening=false;const b=document.getElementById('vbtn');b.className='ibtn';b.textContent='🎤'}
+  recog.start();
+}
+
+// ── Mode ─────────────────────────────
+function setMode(m,btn){
+  mode=m;
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('sb5').textContent='⚡ '+m;
+  dbSet('mem','mode',m);
+  notify('⚡ '+m+' MODE activated');
+}
+
+// ── Tools ─────────────────────────────
+function openSite(url){window.open(url,'_blank')}
+
+// ── Quick cmd ─────────────────────────
+function q(t){
+  if(!KEY){notify('⚠ JARVIS activate koro aage!');toggleSetup();return}
+  document.getElementById('cin').value=t;send();
+}
+
+// ── Clear ─────────────────────────────
+function clearChat(){
+  hist=[];msgs=0;
+  document.getElementById('sb2').textContent='💬 0';
+  document.getElementById('msgs').innerHTML=`<div class="welcome" id="wel"><div class="w-ic">🔄</div><div class="w-t">CLEARED</div><div class="w-s">Fresh start, <span style="color:var(--c)">Amit</span>!</div></div>`;
+  notify('🗑 Chat cleared');
+}
+
+// ── Stats ─────────────────────────────
+async function updateStats(){
+  document.getElementById('sb2').textContent='💬 '+msgs;
+  const c=await dbCount('chats');
+  document.getElementById('sb4').textContent='💾 '+c;
+}
+
+// ── Input helpers ─────────────────────
+function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}
+function autoH(el){el.style.height='42px';el.style.height=Math.min(el.scrollHeight,100)+'px'}
+
+// ── Notify ────────────────────────────
+function notify(msg){
+  const o=document.querySelector('.notif');if(o)o.remove();
+  const el=document.createElement('div');el.className='notif';el.textContent=msg;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),3100);
+}
+
+// ── INIT ─────────────────────────────
+(async()=>{
+  await initDB();
+
+  // Try IndexedDB first, then localStorage as fallback
+  let k = await dbGet('mem','apiKey');
+  let m = await dbGet('mem','model');
+  let md = await dbGet('mem','mode');
+
+  // Fallback to localStorage
+  if(!k) try{ k=localStorage.getItem('jv5_key'); }catch(e){}
+  if(!m) try{ m=localStorage.getItem('jv5_model'); }catch(e){}
+
+  // Also check hardcoded key
+  const hardKey = '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';
+  if(!k && hardKey.startsWith('gsk_')) k = hardKey;
+
+  if(k && k.startsWith('gsk_')){
+    KEY=k; MODEL=m||'llama-3.3-70b-versatile';
+    document.getElementById('setupKey').value=KEY;
+    document.getElementById('setupModel').value=MODEL;
+    document.getElementById('setup').classList.add('hide');
+    document.getElementById('stxt').textContent='ONLINE';
+    document.getElementById('sb1').textContent='🧠 '+MODEL.split('-').slice(0,3).join('-');
+    if(md){
+      mode=md;
+      document.querySelectorAll('.mtab').forEach(b=>{
+        if(b.textContent.includes(md)) b.classList.add('on');
+        else b.classList.remove('on');
+      });
+      document.getElementById('sb5').textContent='⚡ '+md;
+    }
+    updateStats();
+    notify('✅ Welcome back, Amit! JARVIS v5 ready.');
+  }
+})();
+</script>
+</body>
+</html>
